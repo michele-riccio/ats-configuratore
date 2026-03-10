@@ -3,7 +3,8 @@ import { User, Users, Home, Zap, Flame, FileText, X, AlertCircle, ArrowRight, Ca
 import { GoogleGenAI, Type } from '@google/genai';
 import { motion, AnimatePresence } from 'motion/react';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const apiKey = process.env.GEMINI_API_KEY || 'dummy_key_to_prevent_crash';
+const ai = new GoogleGenAI({ apiKey });
 
 type Nucleo = 'single' | 'coppia' | 'famiglia';
 type Fornitura = 'luce' | 'gas';
@@ -169,6 +170,12 @@ export default function App() {
     setIsAnalyzing(true);
     setOcrError(null);
     setOcrData(null);
+
+    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'dummy_key_to_prevent_crash') {
+      setIsAnalyzing(false);
+      setOcrError("Errore: Chiave API di Gemini mancante. Configura VITE_GEMINI_API_KEY nelle impostazioni di Vercel.");
+      return;
+    }
 
     try {
       const reader = new FileReader();
