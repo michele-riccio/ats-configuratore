@@ -54,6 +54,7 @@ export default function App() {
   const [ocrData, setOcrData] = useState<OcrResult | null>(null);
   const [ocrError, setOcrError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [activeTab, setActiveTab] = useState<'sintesi' | 'analisi' | 'consigli'>('sintesi');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -370,7 +371,7 @@ Estrai i dati richiesti e calcola:
       <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-12 gap-6">
         
         {/* LEFT PANEL */}
-        <div className="md:col-span-7 bg-white rounded-[2rem] p-6 md:p-8 shadow-sm">
+        <div className="md:col-span-7 bg-white rounded-[2rem] p-6 md:p-8 shadow-sm h-fit sticky top-4 md:top-8 z-10">
           <div className="flex items-center gap-3 mb-8">
             <Calculator className="w-6 h-6 text-[#1b365d]" />
             <h1 className="text-xl font-bold text-slate-900">I tuoi dati</h1>
@@ -578,7 +579,7 @@ Estrai i dati richiesti e calcola:
         </div>
 
         {/* RIGHT PANEL */}
-        <div className="md:col-span-5 space-y-4">
+        <div className="md:col-span-5 space-y-4 relative">
           {/* ATS POWER OFFER */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
@@ -631,196 +632,240 @@ Estrai i dati richiesti e calcola:
             </AnimatePresence>
           </motion.div>
 
-          {/* MARKETING CARD */}
-          <AnimatePresence mode="wait">
-            {marketing && (
+          {/* TABS NAVIGATION */}
+          <AnimatePresence>
+            {ocrData && (
               <motion.div 
-                key={marketing.sentiment}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className={`rounded-[2rem] p-6 border ${marketing.colorClass} shadow-sm`}
+                className="flex p-1.5 bg-white rounded-2xl shadow-sm border border-slate-200 sticky top-4 md:top-8 z-20"
               >
-              <div className="flex items-start gap-4 mb-4">
-                <div className={`p-3 bg-white rounded-2xl shadow-sm ${marketing.iconColor}`}>
-                  <marketing.icon className="w-8 h-8" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold leading-tight mb-1">{marketing.headline}</h3>
-                  <p className="text-sm opacity-90">{marketing.sottotitolo}</p>
-                </div>
-              </div>
-              
-              <div className="space-y-3 mt-6">
-                {marketing.equivalenza && (
-                  <div className="flex items-center gap-2 text-sm font-medium bg-white/60 p-3 rounded-xl">
-                    <span className="text-lg">🍕</span> {marketing.equivalenza}
-                  </div>
-                )}
-                {marketing.urgency && (
-                  <div className="flex items-start gap-2 text-sm">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 opacity-70" />
-                    <span className="opacity-90">{marketing.urgency}</span>
-                  </div>
-                )}
-                {marketing.social_proof && (
-                  <div className="flex items-start gap-2 text-sm">
-                    <Users className="w-4 h-4 shrink-0 mt-0.5 opacity-70" />
-                    <span className="opacity-90">{marketing.social_proof}</span>
-                  </div>
-                )}
-              </div>
-
-              <button className={`w-full mt-6 bg-white py-3 px-4 rounded-xl font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 ${marketing.iconColor}`}>
-                {marketing.cta} <ArrowRight className="w-4 h-4" />
-              </button>
+                <button 
+                  onClick={() => setActiveTab('sintesi')} 
+                  className={`flex-1 py-2.5 px-2 rounded-xl text-[13px] sm:text-sm font-bold transition-all ${activeTab === 'sintesi' ? 'bg-[#1b365d] text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
+                >
+                  📊 Sintesi
+                </button>
+                <button 
+                  onClick={() => setActiveTab('analisi')} 
+                  className={`flex-1 py-2.5 px-2 rounded-xl text-[13px] sm:text-sm font-bold transition-all ${activeTab === 'analisi' ? 'bg-[#1b365d] text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
+                >
+                  🔍 Analisi
+                </button>
+                <button 
+                  onClick={() => setActiveTab('consigli')} 
+                  className={`flex-1 py-2.5 px-2 rounded-xl text-[13px] sm:text-sm font-bold transition-all ${activeTab === 'consigli' ? 'bg-[#1b365d] text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
+                >
+                  💡 Consigli
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* MARKET MEDIAN */}
-          <div className="bg-[#f8f9fa] rounded-[2rem] p-8 border border-slate-100">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">Mediana di mercato</h3>
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-3xl font-bold text-slate-900">{marketMedian}</span>
-              <span className="text-xl font-medium text-slate-900">€</span>
-              <span className="text-slate-500 text-sm ml-1">/ anno</span>
-            </div>
-            <p className="text-slate-500 text-sm mb-4">Italia • {fornitura === 'luce' ? 'Luce fissa' : 'Gas fisso'}</p>
-            
-            {marketPositioning && (
-              <div className="flex items-center gap-2 text-sm font-medium bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
-                {MarketIcon && <MarketIcon className={`w-5 h-5 ${marketColor}`} />}
-                <span className="text-slate-700">{marketPositioning}</span>
+          {/* TAB CONTENT: SINTESI */}
+          {(!ocrData || activeTab === 'sintesi') && (
+            <motion.div 
+              key="tab-sintesi"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              {/* MARKETING CARD */}
+              <AnimatePresence mode="wait">
+                {marketing && (
+                  <motion.div 
+                    key={marketing.sentiment}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className={`rounded-[2rem] p-6 border ${marketing.colorClass} shadow-sm`}
+                  >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className={`p-3 bg-white rounded-2xl shadow-sm ${marketing.iconColor}`}>
+                      <marketing.icon className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold leading-tight mb-1">{marketing.headline}</h3>
+                      <p className="text-sm opacity-90">{marketing.sottotitolo}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3 mt-6">
+                    {marketing.equivalenza && (
+                      <div className="flex items-center gap-2 text-sm font-medium bg-white/60 p-3 rounded-xl">
+                        <span className="text-lg">🍕</span> {marketing.equivalenza}
+                      </div>
+                    )}
+                    {marketing.urgency && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 opacity-70" />
+                        <span className="opacity-90">{marketing.urgency}</span>
+                      </div>
+                    )}
+                    {marketing.social_proof && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <Users className="w-4 h-4 shrink-0 mt-0.5 opacity-70" />
+                        <span className="opacity-90">{marketing.social_proof}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <button className={`w-full mt-6 bg-white py-3 px-4 rounded-xl font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 ${marketing.iconColor}`}>
+                    {marketing.cta} <ArrowRight className="w-4 h-4" />
+                  </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* SCORE CONVENIENZA (Moved to Sintesi for immediate impact) */}
+              {ocrData?.convenienza_score && (
+                <div className="flex items-center justify-between bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-6 border border-amber-200 shadow-sm">
+                  <div>
+                    <h3 className="font-bold text-amber-900 text-sm mb-1">Score Convenienza ATS</h3>
+                    <p className="text-xs font-medium text-amber-700 opacity-90">{ocrData.convenienza_score.etichetta}</p>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-black text-amber-600">{ocrData.convenienza_score.punteggio}</span>
+                      <span className="text-sm font-bold text-amber-800">/100</span>
+                    </div>
+                    <div className="flex gap-0.5 mt-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={`star-${i}`} className={`w-3 h-3 ${i < (ocrData.convenienza_score?.stelle || 0) ? 'fill-amber-400 text-amber-400' : 'text-amber-200'}`} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MARKET MEDIAN */}
+              <div className="bg-[#f8f9fa] rounded-[2rem] p-8 border border-slate-100">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">Mediana di mercato</h3>
+                <div className="flex items-baseline gap-2 mb-2">
+                  <span className="text-3xl font-bold text-slate-900">{marketMedian}</span>
+                  <span className="text-xl font-medium text-slate-900">€</span>
+                  <span className="text-slate-500 text-sm ml-1">/ anno</span>
+                </div>
+                <p className="text-slate-500 text-sm mb-4">Italia • {fornitura === 'luce' ? 'Luce fissa' : 'Gas fisso'}</p>
+                
+                {marketPositioning && (
+                  <div className="flex items-center gap-2 text-sm font-medium bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                    {MarketIcon && <MarketIcon className={`w-5 h-5 ${marketColor}`} />}
+                    <span className="text-slate-700">{marketPositioning}</span>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </motion.div>
+          )}
 
-          {/* AI INSIGHTS FROM OCR */}
-          <AnimatePresence>
-            {ocrData?.analisi_fornitore && (
-              <motion.div 
-                key="analisi-fornitore"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="bg-white rounded-[2rem] p-6 border border-slate-200 shadow-sm overflow-hidden"
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <Building2 className="w-5 h-5 text-indigo-600" />
-                  <h3 className="font-bold text-slate-900">Analisi Fornitore Attuale</h3>
+          {/* TAB CONTENT: ANALISI */}
+          {ocrData && activeTab === 'analisi' && (
+            <motion.div 
+              key="tab-analisi"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              {/* ANALISI FORNITORE */}
+              {ocrData.analisi_fornitore && (
+                <div className="bg-white rounded-[2rem] p-6 border border-slate-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-6">
+                    <Building2 className="w-5 h-5 text-indigo-600" />
+                    <h3 className="font-bold text-slate-900">Il tuo Fornitore Attuale</h3>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center py-3 border-b border-slate-100">
+                      <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">Nome</span>
+                      <span className="font-bold text-slate-900 text-right">{ocrData.analisi_fornitore.nome}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 border-b border-slate-100">
+                      <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">Mercato</span>
+                      <span className="font-bold text-slate-900 capitalize text-right">{ocrData.analisi_fornitore.tipo_mercato}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-3 border-b border-slate-100">
+                      <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">Rischio Rincaro</span>
+                      <span className={`font-bold capitalize px-3 py-1 rounded-lg text-xs ${
+                        ocrData.analisi_fornitore.rischio_rincaro === 'alto' ? 'bg-red-100 text-red-700' : 
+                        ocrData.analisi_fornitore.rischio_rincaro === 'medio' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                      }`}>{ocrData.analisi_fornitore.rischio_rincaro}</span>
+                    </div>
+                    <div className="bg-indigo-50/50 p-4 rounded-2xl text-sm text-indigo-900 mt-4 border border-indigo-100/50 leading-relaxed">
+                      <span className="font-bold">Nota AI: </span>
+                      {ocrData.analisi_fornitore.nota}
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                    <span className="text-sm text-slate-500">Nome</span>
-                    <span className="font-semibold">{ocrData.analisi_fornitore.nome}</span>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                    <span className="text-sm text-slate-500">Mercato</span>
-                    <span className="font-semibold capitalize">{ocrData.analisi_fornitore.tipo_mercato}</span>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                    <span className="text-sm text-slate-500">Rischio Rincaro</span>
-                    <span className={`font-semibold capitalize ${
-                      ocrData.analisi_fornitore.rischio_rincaro === 'alto' ? 'text-red-600' : 
-                      ocrData.analisi_fornitore.rischio_rincaro === 'medio' ? 'text-amber-600' : 'text-emerald-600'
-                    }`}>{ocrData.analisi_fornitore.rischio_rincaro}</span>
-                  </div>
-                  <div className="bg-indigo-50 p-3 rounded-xl text-sm text-indigo-900 mt-2">
-                    <span className="font-semibold">Nota: </span>
-                    {ocrData.analisi_fornitore.nota}
-                  </div>
-                </div>
-              </motion.div>
-            )}
+              )}
 
-            {ocrData?.proiezione && (
-              <motion.div 
-                key="proiezione"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="bg-white rounded-[2rem] p-6 border border-slate-200 shadow-sm overflow-hidden"
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <LineChart className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-bold text-slate-900">Proiezione a 24 Mesi</h3>
-                </div>
-                <div className="bg-slate-50 p-4 rounded-xl mb-4">
-                  <p className="text-sm text-slate-700 font-medium">{ocrData.proiezione.messaggio}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-red-50 p-3 rounded-xl border border-red-100">
-                    <p className="text-xs text-red-800 mb-1">Spesa Attuale (12m)</p>
-                    <p className="text-lg font-bold text-red-900">{ocrData.proiezione.stima_spesa_12_mesi_attuale.toFixed(0)}€</p>
+              {/* PROIEZIONE */}
+              {ocrData.proiezione && (
+                <div className="bg-white rounded-[2rem] p-6 border border-slate-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <LineChart className="w-5 h-5 text-blue-600" />
+                    <h3 className="font-bold text-slate-900">Proiezione a 12 Mesi</h3>
                   </div>
-                  <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
-                    <p className="text-xs text-emerald-800 mb-1">Spesa ATS (12m)</p>
-                    <p className="text-lg font-bold text-emerald-900">{ocrData.proiezione.stima_spesa_12_mesi_ats.toFixed(0)}€</p>
+                  <div className="bg-slate-50 p-4 rounded-2xl mb-5 border border-slate-100">
+                    <p className="text-sm text-slate-700 font-medium leading-relaxed">{ocrData.proiezione.messaggio}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-red-50 p-4 rounded-2xl border border-red-100">
+                      <p className="text-[10px] text-red-800 font-bold uppercase tracking-wider mb-1">Spesa Attuale</p>
+                      <p className="text-2xl font-black text-red-900">{ocrData.proiezione.stima_spesa_12_mesi_attuale.toFixed(0)}€</p>
+                    </div>
+                    <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                      <p className="text-[10px] text-emerald-800 font-bold uppercase tracking-wider mb-1">Spesa ATS</p>
+                      <p className="text-2xl font-black text-emerald-900">{ocrData.proiezione.stima_spesa_12_mesi_ats.toFixed(0)}€</p>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
-            )}
+              )}
+            </motion.div>
+          )}
 
-            {ocrData?.convenienza_score && (
-              <motion.div 
-                key="convenienza-score"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-[2rem] p-6 border border-amber-200 shadow-sm overflow-hidden"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-bold text-amber-900">Score Convenienza ATS</h3>
-                  <div className="flex gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={`star-${i}`} className={`w-5 h-5 ${i < (ocrData.convenienza_score?.stelle || 0) ? 'fill-amber-400 text-amber-400' : 'text-amber-200'}`} />
+          {/* TAB CONTENT: CONSIGLI */}
+          {ocrData && activeTab === 'consigli' && (
+            <motion.div 
+              key="tab-consigli"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              {ocrData.consigli_efficienza && ocrData.consigli_efficienza.length > 0 ? (
+                <div className="bg-white rounded-[2rem] p-6 border border-slate-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-6">
+                    <Lightbulb className="w-5 h-5 text-yellow-500" />
+                    <h3 className="font-bold text-slate-900">Consigli di Efficienza</h3>
+                  </div>
+                  <div className="space-y-4">
+                    {ocrData.consigli_efficienza.map((consiglio, idx) => (
+                      <div key={idx} className="bg-slate-50 p-5 rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors">
+                        <div className="flex justify-between items-start mb-3 gap-4">
+                          <h4 className="font-bold text-slate-800 text-sm leading-tight">{consiglio.titolo}</h4>
+                          <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-md shrink-0 ${
+                            consiglio.priorita === 'alta' ? 'bg-red-100 text-red-700' :
+                            consiglio.priorita === 'media' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            Priorità {consiglio.priorita}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 mb-4 leading-relaxed">{consiglio.descrizione}</p>
+                        <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg">
+                          <PiggyBank className="w-3.5 h-3.5" />
+                          Risparmio potenziale: ~{consiglio.risparmio_potenziale_euro}€/anno
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
-                <div className="flex items-end gap-3 mb-2">
-                  <span className="text-4xl font-black text-amber-600">{ocrData.convenienza_score.punteggio}</span>
-                  <span className="text-lg font-bold text-amber-800 mb-1">/ 100</span>
+              ) : (
+                <div className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm text-center">
+                  <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+                  <h3 className="font-bold text-slate-900 mb-1">Nessun consiglio urgente</h3>
+                  <p className="text-sm text-slate-500">I tuoi consumi sembrano già ben ottimizzati.</p>
                 </div>
-                <p className="text-sm font-bold text-amber-900 mb-1">{ocrData.convenienza_score.etichetta}</p>
-                <p className="text-xs text-amber-700 opacity-80">{ocrData.convenienza_score.calcolo}</p>
-              </motion.div>
-            )}
-
-            {ocrData?.consigli_efficienza && ocrData.consigli_efficienza.length > 0 && (
-              <motion.div 
-                key="consigli-efficienza"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="bg-white rounded-[2rem] p-6 border border-slate-200 shadow-sm overflow-hidden"
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <Lightbulb className="w-5 h-5 text-yellow-500" />
-                  <h3 className="font-bold text-slate-900">Consigli di Efficienza</h3>
-                </div>
-                <div className="space-y-4">
-                  {ocrData.consigli_efficienza.map((consiglio, idx) => (
-                    <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-bold text-slate-800 text-sm">{consiglio.titolo}</h4>
-                        <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${
-                          consiglio.priorita === 'alta' ? 'bg-red-100 text-red-700' :
-                          consiglio.priorita === 'media' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
-                        }`}>
-                          Priorità {consiglio.priorita}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-600 mb-2">{consiglio.descrizione}</p>
-                      <div className="text-xs font-semibold text-emerald-600">
-                        Risparmio potenziale: ~{consiglio.risparmio_potenziale_euro}€/anno
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+            </motion.div>
+          )}
         </div>
 
       </div>
